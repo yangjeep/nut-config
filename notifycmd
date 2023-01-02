@@ -1,0 +1,30 @@
+#!/bin/bash
+#
+# NUT NOTIFYCMD script
+# This will shutdown the slave in 3 min (180 sec)
+# Ideally should be stored at: /etc/nut/notifycmd
+
+PATH=/sbin:/usr/sbin:/bin:/usr/bin:/usr/local/sbin:/usr/local/bin
+
+trap "exit 0" SIGTERM
+
+if [ "$NOTIFYTYPE" = "ONLINE" ]
+then
+        echo $0: power restored | wall
+        # Cause all instances of this script to exit.
+        killall -s SIGTERM `basename $0`
+fi
+
+if [ "$NOTIFYTYPE" = "ONBATT" ]
+then
+        echo $0: 3 minutes till system powers down... | wall
+        # Loop with one second interval to allow SIGTERM reception.
+        let "n = 180"
+        while [ $n -ne 0 ]
+        do
+                sleep 1
+                let "n--"
+        done
+        echo $0: commencing shutdown | wall
+        upsmon -c fsd
+fi
